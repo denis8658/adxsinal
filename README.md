@@ -20,6 +20,40 @@ python main.py
 
 Documentação interativa local: `http://localhost:8000/docs`; esquema OpenAPI: `http://localhost:8000/openapi.json`. Pelo Docker Compose, a porta publicada continua sendo `8001`.
 
+## Usando a API em produção
+
+A API publicada no Railway está disponível na seguinte URL base:
+
+```text
+https://adxsinal-production.up.railway.app
+```
+
+Use essa URL antes de cada rota da tabela de endpoints. Por exemplo, a rota `/health` pode ser acessada em:
+
+```text
+https://adxsinal-production.up.railway.app/health
+```
+
+Atalhos úteis:
+
+- Swagger UI: `https://adxsinal-production.up.railway.app/docs`
+- Esquema OpenAPI: `https://adxsinal-production.up.railway.app/openapi.json`
+- Verificação de saúde: `https://adxsinal-production.up.railway.app/health`
+
+Nos exemplos abaixo, defina a URL base uma vez no terminal:
+
+```bash
+BASE_URL="https://adxsinal-production.up.railway.app"
+```
+
+No PowerShell, use:
+
+```powershell
+$BASE_URL = "https://adxsinal-production.up.railway.app"
+```
+
+As operações de controle do motor exigem o cabeçalho `X-Engine-Key`, cujo valor deve ser a mesma chave configurada em `ENGINE_MASTER_KEY` no Railway. Substitua os valores de exemplo, como `SSID_COMPLETO`, `UUID_DA_SESSAO`, `UUID_DO_MOTOR` e `SUA_CHAVE`, pelos valores reais. Nunca exponha o SSID ou a chave do motor em código público, logs ou no frontend.
+
 ## Configuração segura
 
 Edite `.env` e substitua `ENGINE_MASTER_KEY`. Não versionar `.env`. Os principais limites são `MAX_ORDER_AMOUNT`, `MAX_DAILY_LOSS`, `MAX_CONSECUTIVE_LOSSES`, `MAX_ORDERS_PER_HOUR`, `MIN_SIGNAL_SCORE`, `ORDER_COOLDOWN_SECONDS` e `LOSS_COOLDOWN_SECONDS`.
@@ -37,7 +71,7 @@ O SSID existe apenas em memória. Persistem somente UUID interno, hash SHA-256, 
 Conectar uma sessão:
 
 ```bash
-curl -X POST http://localhost:8001/api/v1/connection/session \
+curl -X POST "$BASE_URL/api/v1/connection/session" \
   -H "Content-Type: application/json" \
   -d '{"ssid":"SSID_COMPLETO","persistent_connection":true,"auto_reconnect":true,"connect_after_init":true}'
 ```
@@ -45,7 +79,7 @@ curl -X POST http://localhost:8001/api/v1/connection/session \
 Iniciar em modo seguro de sinais:
 
 ```bash
-curl -X POST http://localhost:8001/api/v1/engine/start \
+curl -X POST "$BASE_URL/api/v1/engine/start" \
   -H "Content-Type: application/json" -H "X-Engine-Key: SUA_CHAVE" \
   -d '{"session_id":"UUID_DA_SESSAO","asset":"EURGBP_otc","timeframe_seconds":5,"expiration_seconds":30,"amount":1,"profile":"balanced","auto_execute":false,"account_mode":"demo"}'
 ```
@@ -53,7 +87,7 @@ curl -X POST http://localhost:8001/api/v1/engine/start \
 Parar:
 
 ```bash
-curl -X POST http://localhost:8001/api/v1/engine/stop \
+curl -X POST "$BASE_URL/api/v1/engine/stop" \
   -H "Content-Type: application/json" -H "X-Engine-Key: SUA_CHAVE" \
   -d '{"engine_id":"UUID_DO_MOTOR"}'
 ```
