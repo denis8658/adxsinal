@@ -25,8 +25,9 @@ def test_pause_resume_and_signal_only_worker(client, session_id):
     engine_id = started.json()["engine_id"]
     assert client.post("/api/v1/engine/pause", json={"engine_id": engine_id}).json()["status"] == "paused"
     assert client.post("/api/v1/engine/resume", json={"engine_id": engine_id}).json()["status"] == "running"
-    time.sleep(.15)
+    time.sleep(.3)
     status = client.get(f"/api/v1/engine/status/{engine_id}").json()
     assert status["orders_executed"] == 0
-    assert status["status"] in {"RUNNING", "ERROR"}
+    assert status["status"] == "RUNNING"
+    assert status["last_price"] is not None
     client.post("/api/v1/engine/stop", json={"engine_id": engine_id})

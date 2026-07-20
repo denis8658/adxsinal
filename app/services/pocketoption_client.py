@@ -18,7 +18,7 @@ class PocketOptionClient:
     async def close(self) -> None:
         await self._client.aclose()
 
-    async def _request(self, method: str, path: str, *, json: dict | None = None, params: dict | None = None, retry: bool = True) -> dict[str, Any]:
+    async def _request(self, method: str, path: str, *, json: dict | None = None, params: dict | None = None, retry: bool = True, allow_list: bool = False) -> dict[str, Any] | list[Any]:
         attempts = 3 if retry else 1
         for attempt in range(attempts):
             started = perf_counter()
@@ -27,7 +27,7 @@ class PocketOptionClient:
                 self.last_latency_ms = (perf_counter() - started) * 1000
                 response.raise_for_status()
                 data = response.json()
-                if not isinstance(data, dict):
+                if not isinstance(data, dict) and not (allow_list and isinstance(data, list)):
                     raise ExternalAPIError("Resposta JSON inválida")
                 logger.info("external_api method=%s path=%s status=%s latency_ms=%.1f", method, path, response.status_code, self.last_latency_ms)
                 return data
@@ -51,7 +51,14 @@ class PocketOptionClient:
     async def disconnect(self) -> dict: return await self._request("POST", "/api/disconnect", json={}, retry=False)
     async def balance(self) -> dict: return await self._request("GET", "/api/balance")
     async def connection_stats(self) -> dict: return await self._request("GET", "/api/connection-stats")
-    async def candles(self, asset: str, timeframe: int) -> dict: return await self._request("GET", "/api/candles", params={"asset": asset, "timeframe": timeframe})
+    async def candles(self, asset: str, timeframe: int, count: int = 100) -> dict:
+        response = await self._request(
+            "POST",
+            "/api/candles",
+            json={"asset": asset, "timeframe": timeframe, "count": count},
+            allow_list=True,
+        )
+        return {"candles": response} if isinstance(response, list) else response
     async def ticks(self, asset: str) -> dict: return await self._request("GET", f"/api/ticks/{asset}")
     async def all_ticks(self) -> dict: return await self._request("GET", "/api/ticks")
     async def assets(self) -> dict: return await self._request("GET", "/api/assets")

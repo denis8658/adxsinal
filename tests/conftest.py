@@ -21,12 +21,13 @@ def external_transport():
         if path == "/api/balance": return httpx.Response(200, json={"balance": 1000, "currency": "USD", "account_type": "demo"})
         if path == "/api/assets": return httpx.Response(200, json={"assets": ["EURUSD_otc"]})
         if path == "/api/candles":
+            assert request.method == "POST"
             now = datetime.now(UTC)
             candles = []
             for i in range(80):
                 close = 1 + i * .001 + ((i % 5) - 2) * .0001
                 candles.append({"timestamp": (now - timedelta(seconds=(79-i)*5)).isoformat(), "open": close-.0002, "high": close+.0005, "low": close-.0005, "close": close})
-            return httpx.Response(200, json={"candles": candles})
+            return httpx.Response(200, json=candles)
         return httpx.Response(200, json={"success": True})
     return httpx.MockTransport(handler)
 

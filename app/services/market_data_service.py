@@ -11,8 +11,11 @@ class MarketDataService:
     async def candles(self, asset: str, timeframe: int) -> list[dict[str, Any]]:
         response = await self.client.candles(asset, timeframe)
         items = response.get("candles", response.get("data", []))
-        if not isinstance(items, list):
+        if not isinstance(items, list) or not items:
             raise ValueError("Formato de candles inválido")
+        required = {"open", "high", "low", "close"}
+        if any(not isinstance(item, dict) or not required.issubset(item) or not ({"timestamp", "time"} & item.keys()) for item in items):
+            raise ValueError("Candle incompleto")
         return items
 
     @staticmethod
