@@ -18,7 +18,7 @@ def external_transport():
     async def handler(request: httpx.Request):
         path = request.url.path
         if path == "/api/connection-stats": return httpx.Response(200, json={"connected": True})
-        if path == "/api/balance": return httpx.Response(200, json={"balance": 1000, "currency": "USD", "account_mode": "demo"})
+        if path == "/api/balance": return httpx.Response(200, json={"balance": 1000, "currency": "USD", "account_type": "demo"})
         if path == "/api/assets": return httpx.Response(200, json={"assets": ["EURUSD_otc"]})
         if path == "/api/candles":
             now = datetime.now(UTC)

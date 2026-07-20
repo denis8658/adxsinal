@@ -14,8 +14,6 @@ async def create_session(body: SessionCreate, service: ConnectionService = Depen
     try:
         context, balance = await service.create(body)
         return {"status": "connected" if context.connected else "initialized", "session_id": context.id, "account_mode": context.account_mode, "balance": float(balance.get("balance", balance.get("amount", 0))), "currency": str(balance.get("currency", "USD")), "external_api_connected": context.connected, "engine_running": False, "created_at": context.created_at}
-    except ValueError as exc:
-        raise HTTPException(status_code=409, detail={"code": "SESSION_ALREADY_EXISTS", "message": str(exc)}) from exc
     except ExternalAPIError as exc:
         raise HTTPException(status_code=502, detail={"code": "POCKETOPTION_CONNECTION_FAILED", "message": "Não foi possível conectar à API externa."}) from exc
 
