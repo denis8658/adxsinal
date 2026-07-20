@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     forwarded_allow_ips: str = "*"
     auto_create_schema: bool = True
     pocketoption_base_url: str = "https://pocketoptionapi-mainscalp-production-0434.up.railway.app"
-    engine_master_key: str = "troque-esta-chave"
     allow_live_trading: bool = False
     default_account_mode: Literal["demo", "real"] = "demo"
     engine_mode: Literal["signal_only", "demo_auto", "live_auto"] = "signal_only"
@@ -44,13 +43,6 @@ class Settings(BaseSettings):
     sensitive_rate_limit: int = 20
     sensitive_rate_window_seconds: int = 60
 
-    @field_validator("engine_master_key")
-    @classmethod
-    def key_not_empty(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("ENGINE_MASTER_KEY não pode ser vazia")
-        return value
-
     @property
     def normalized_database_url(self) -> str:
         url = self.database_url
@@ -59,13 +51,6 @@ class Settings(BaseSettings):
         elif url.startswith("postgresql://"):
             url = "postgresql+asyncpg://" + url.removeprefix("postgresql://")
         return url.replace("sslmode=", "ssl=")
-
-    @model_validator(mode="after")
-    def production_secrets_must_be_replaced(self) -> "Settings":
-        if self.environment == "production" and self.engine_master_key == "troque-esta-chave":
-            raise ValueError("ENGINE_MASTER_KEY deve ser substituída em produção")
-        return self
-
 
 @lru_cache
 def get_settings() -> Settings:

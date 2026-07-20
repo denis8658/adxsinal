@@ -52,11 +52,11 @@ No PowerShell, use:
 $BASE_URL = "https://adxsinal-production.up.railway.app"
 ```
 
-As operações de controle do motor exigem o cabeçalho `X-Engine-Key`, cujo valor deve ser a mesma chave configurada em `ENGINE_MASTER_KEY` no Railway. Substitua os valores de exemplo, como `SSID_COMPLETO`, `UUID_DA_SESSAO`, `UUID_DO_MOTOR` e `SUA_CHAVE`, pelos valores reais. Nunca exponha o SSID ou a chave do motor em código público, logs ou no frontend.
+As rotas de controle do motor são públicas e não exigem chave de autenticação. Substitua os valores de exemplo, como `SSID_COMPLETO`, `UUID_DA_SESSAO` e `UUID_DO_MOTOR`, pelos valores reais. Nunca exponha o SSID em código público, logs ou no frontend. Como qualquer pessoa com a URL pode controlar o motor, mantenha `ENGINE_MODE=signal_only` e `ALLOW_LIVE_TRADING=false` em serviços expostos à internet.
 
 ## Configuração segura
 
-Edite `.env` e substitua `ENGINE_MASTER_KEY`. Não versionar `.env`. Os principais limites são `MAX_ORDER_AMOUNT`, `MAX_DAILY_LOSS`, `MAX_CONSECUTIVE_LOSSES`, `MAX_ORDERS_PER_HOUR`, `MIN_SIGNAL_SCORE`, `ORDER_COOLDOWN_SECONDS` e `LOSS_COOLDOWN_SECONDS`.
+Não versione o arquivo `.env`. Os principais limites são `MAX_ORDER_AMOUNT`, `MAX_DAILY_LOSS`, `MAX_CONSECUTIVE_LOSSES`, `MAX_ORDERS_PER_HOUR`, `MIN_SIGNAL_SCORE`, `ORDER_COOLDOWN_SECONDS` e `LOSS_COOLDOWN_SECONDS`.
 
 Modos:
 
@@ -80,7 +80,7 @@ Iniciar em modo seguro de sinais:
 
 ```bash
 curl -X POST "$BASE_URL/api/v1/engine/start" \
-  -H "Content-Type: application/json" -H "X-Engine-Key: SUA_CHAVE" \
+  -H "Content-Type: application/json" \
   -d '{"session_id":"UUID_DA_SESSAO","asset":"EURGBP_otc","timeframe_seconds":5,"expiration_seconds":30,"amount":1,"profile":"balanced","auto_execute":false,"account_mode":"demo"}'
 ```
 
@@ -88,7 +88,7 @@ Parar:
 
 ```bash
 curl -X POST "$BASE_URL/api/v1/engine/stop" \
-  -H "Content-Type: application/json" -H "X-Engine-Key: SUA_CHAVE" \
+  -H "Content-Type: application/json" \
   -d '{"engine_id":"UUID_DO_MOTOR"}'
 ```
 
@@ -98,8 +98,8 @@ curl -X POST "$BASE_URL/api/v1/engine/stop" \
 |---|---|---|
 | POST / DELETE | `/api/v1/connection/session`, `/api/v1/connection/session/{id}` | validação e rate limit |
 | GET | `/api/v1/account/{session_id}` | sessão válida |
-| POST | `/api/v1/engine/start`, `stop`, `pause`, `resume`, `unlock-risk` | `X-Engine-Key` |
-| GET / PATCH | `/api/v1/engine/config/{engine_id}` | `X-Engine-Key` |
+| POST | `/api/v1/engine/start`, `stop`, `pause`, `resume`, `unlock-risk` | pública |
+| GET / PATCH | `/api/v1/engine/config/{engine_id}` | pública |
 | GET | `/api/v1/engine/status/{engine_id}` | leitura |
 | GET | `/api/v1/signals`, `/api/v1/signals/latest/{engine_id}` | leitura e filtros |
 | GET | `/health`, `/ready`, `/live` | probes |
@@ -132,13 +132,12 @@ O arquivo `railway.toml` configura Dockerfile, `alembic upgrade head`, `/health`
 
 Configure no painel pelo menos:
 
-- `ENGINE_MASTER_KEY` com valor aleatório forte;
 - `DATABASE_URL` do serviço PostgreSQL;
 - `CORS_ORIGINS` com os domínios reais do frontend;
 - `TRUSTED_HOSTS` incluindo o domínio público e `healthcheck.railway.app`;
 - `ENVIRONMENT=production`, `AUTO_CREATE_SCHEMA=false` e `ALLOW_LIVE_TRADING=false`.
 
-A aplicação recusa iniciar em produção enquanto a chave de exemplo não for substituída. Railway usa o `PORT` injetado também para o health check. HTTPS termina no proxy; a API respeita `X-Forwarded-Proto` e envia HSTS em requisições HTTPS.
+Railway usa o `PORT` injetado também para o health check. HTTPS termina no proxy; a API respeita `X-Forwarded-Proto` e envia HSTS em requisições HTTPS.
 
 ## Docker
 

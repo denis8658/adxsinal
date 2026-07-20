@@ -1,11 +1,8 @@
-from app.core.security import verify_engine_key
 from app.core.config import Settings
 from app.utils.masks import mask_secret, mask_sensitive_text
 
 
-def test_key_validation_and_masking():
-    assert verify_engine_key("abc", "abc")
-    assert not verify_engine_key("abc", "abd")
+def test_secret_masking():
     secret = '42["auth",{"session":"top-secret"}]'
     assert secret not in mask_sensitive_text(secret)
     assert "..." in mask_secret(secret)

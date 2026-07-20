@@ -10,7 +10,7 @@ from app.services.pocketoption_client import PocketOptionClient
 
 @pytest.fixture
 def settings(tmp_path):
-    return Settings(engine_master_key="test-secret-key", database_url=f"sqlite+aiosqlite:///{tmp_path / 'test.db'}", engine_loop_interval_ms=20, engine_mode="signal_only")
+    return Settings(database_url=f"sqlite+aiosqlite:///{tmp_path / 'test.db'}", engine_loop_interval_ms=20, engine_mode="signal_only")
 
 
 @pytest.fixture
